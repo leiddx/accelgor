@@ -5,6 +5,8 @@ import os
 os.environ.setdefault("DATABASE_URL", "sqlite://:memory:")
 os.environ.setdefault("DEBUG", "true")
 
+from collections.abc import Generator
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -12,6 +14,6 @@ from app.main import app
 
 
 @pytest.fixture()
-def client():
+def client() -> Generator[TestClient, None, None]:
     with TestClient(app) as test_client:
         yield test_client
