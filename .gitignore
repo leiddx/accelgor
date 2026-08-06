@@ -217,5 +217,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# 项目本地数据
+uploads/*
+!uploads/.gitkeep
+
 
 .DS_Store
