@@ -2,10 +2,11 @@
 
 import uuid
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Request, status
+from fastapi.responses import JSONResponse
 from tortoise.expressions import Q
 
-from app.api.deps import token_check
+from app.api.deps import _failure_response, token_check
 from app.core.security import verify_password
 from app.models import Token as TokenModel
 from app.models import User as UserModel
@@ -16,21 +17,23 @@ router = APIRouter(prefix="/login", tags=["auth"])
 
 
 @router.post("/", response_model=UserLoginResponse, status_code=status.HTTP_200_OK)
-async def login(payload: UserLoginRequest) -> UserLoginResponse:
+async def login(payload: UserLoginRequest) -> UserLoginResponse | JSONResponse:
     user = await UserModel.filter(
         Q(username=payload.username) | Q(phone=payload.username) | Q(email=payload.username)
     ).first()
 
     if not user:
-        raise HTTPException(
+        return _failure_response(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="用户名或密码错误",
+            code="LOGIN_FAILED",
+            message="用户名或密码错误",
         )
 
     if not verify_password(payload.password, user.password):
-        raise HTTPException(
+        return _failure_response(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="用户名或密码错误",
+            code="LOGIN_FAILED",
+            message="用户名或密码错误",
         )
 
     access_token = uuid.uuid4().hex
@@ -54,13 +57,14 @@ async def login(payload: UserLoginRequest) -> UserLoginResponse:
 
 @router.put("/", response_model=UserLoginResponse, status_code=status.HTTP_200_OK)
 @token_check(scope="*")
-async def refresh_token(payload: UserTokenRefreshRequest, request: Request) -> UserLoginResponse:
+async def refresh_token(payload: UserTokenRefreshRequest, request: Request) -> UserLoginResponse | JSONResponse:
     token = request.state.current_token
 
     if token.refresh != payload.refresh:
-        raise HTTPException(
+        return _failure_response(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="刷新令牌错误",
+            code="REFRESH_TOKEN_INVALID",
+            message="刷新令牌错误",
         )
 
     access_token = uuid.uuid4().hex

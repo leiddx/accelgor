@@ -62,4 +62,8 @@ def test_register_user_rejects_duplicate_username(client: TestClient) -> None:
 
     assert first_response.status_code == 201
     assert second_response.status_code == 409
-    assert second_response.json() == {"detail": "用户名已存在"}
+    assert second_response.json() == {
+        "success": False,
+        "code": "USERNAME_CONFLICT",
+        "message": "用户名已存在",
+    }

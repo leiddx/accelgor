@@ -183,4 +183,8 @@ def test_refresh_token_rejects_mismatch_refresh(client: TestClient) -> None:
     )
 
     assert refresh_response.status_code == 401
-    assert refresh_response.json() == {"detail": "刷新令牌错误"}
+    assert refresh_response.json() == {
+        "success": False,
+        "code": "REFRESH_TOKEN_INVALID",
+        "message": "刷新令牌错误",
+    }

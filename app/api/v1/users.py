@@ -1,9 +1,10 @@
 """用户注册接口。"""
 
 import bcrypt
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Request, status
+from fastapi.responses import JSONResponse
 
-from app.api.deps import token_check
+from app.api.deps import _failure_response, token_check
 from app.core.security import hash_password
 from app.models import User as UserModel
 from app.schemas import UserCreate, UserPublic
@@ -12,23 +13,26 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("/", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
-async def register_user(payload: UserCreate) -> UserPublic:
+async def register_user(payload: UserCreate) -> UserPublic | JSONResponse:
     if await UserModel.filter(username=payload.username).exists():
-        raise HTTPException(
+        return _failure_response(
             status_code=status.HTTP_409_CONFLICT,
-            detail="用户名已存在",
+            code="USERNAME_CONFLICT",
+            message="用户名已存在",
         )
 
     if payload.phone and await UserModel.filter(phone=payload.phone).exists():
-        raise HTTPException(
+        return _failure_response(
             status_code=status.HTTP_409_CONFLICT,
-            detail="手机号已存在",
+            code="PHONE_CONFLICT",
+            message="手机号已存在",
         )
 
     if payload.email and await UserModel.filter(email=payload.email).exists():
-        raise HTTPException(
+        return _failure_response(
             status_code=status.HTTP_409_CONFLICT,
-            detail="邮箱已存在",
+            code="EMAIL_CONFLICT",
+            message="邮箱已存在",
         )
 
     salt = bcrypt.gensalt()
