@@ -1,0 +1,54 @@
+### 图片上传接口（原始二进制 body）
+# POST /api/v1/uploads/
+# 说明：
+# - 该接口需要登录，请先获取 access_token。
+# - 请求体直接放二进制数据（raw body），不使用 multipart/form-data。
+# - 通过 Content-Type 传 MIME 进行类型判定，仅允许：
+#   - image/png
+#   - image/jpeg
+# - 成功返回 201，包含 filename / mime_type / size。
+
+@host = http://127.0.0.1:8000
+@username = upload_demo_user
+@password = secret123
+
+### 注册用户（若重复可修改 @username）
+POST {{host}}/api/v1/users/
+Content-Type: application/json
+
+{
+	"username": "{{username}}",
+	"password": "{{password}}"
+}
+
+### 登录并提取 access_token
+# @name userLogin
+POST {{host}}/api/v1/login/
+Content-Type: application/json
+
+{
+	"username": "{{username}}",
+	"password": "{{password}}"
+}
+
+### 上传 PNG（二进制示例）
+# 说明：使用同目录 demo.png 作为真实二进制内容上传。
+POST {{host}}/api/v1/uploads/
+Content-Type: image/png
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+< ./demo.png
+
+### 上传 JPEG（二进制示例）
+POST {{host}}/api/v1/uploads/
+Content-Type: image/jpeg
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+< ./demo.jpg
+
+### 非法类型示例（预期 415）
+POST {{host}}/api/v1/uploads/
+Content-Type: text/plain
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+not-an-image

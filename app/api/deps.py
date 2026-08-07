@@ -1,6 +1,6 @@
 """跨接口共享的依赖项（如登录态校验）。"""
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from datetime import timezone
 from functools import wraps
 from typing import Any
@@ -116,6 +116,50 @@ def token_check(scope: str) -> Callable[[Callable[..., Awaitable[Any]]], Callabl
 				)
 
 			request.state.current_token = token
+
+			return await func(*args, **kwargs)
+
+		return wrapper
+
+	return decorator
+
+
+def mime_type_check(
+	allowed_mime_types: Mapping[str, str],
+) -> Callable[[Callable[..., Awaitable[Any]]], Callable[..., Awaitable[Any]]]:
+	"""校验 Content-Type，并写入 request.state 供业务函数复用。"""
+
+	def decorator(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+		@wraps(func)
+		async def wrapper(*args: Any, **kwargs: Any) -> Any:
+			request = _resolve_request(args, kwargs)
+			if request is None:
+				return _failure_response(
+					status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+					code="REQUEST_CONTEXT_MISSING",
+					message="请求上下文缺失",
+				)
+
+			raw_content_type = request.headers.get("Content-Type", "")
+			mime_type = raw_content_type.split(";", 1)[0].strip().lower()
+
+			if not mime_type:
+				return _failure_response(
+					status_code=status.HTTP_400_BAD_REQUEST,
+					code="MIME_TYPE_MISSING",
+					message="缺少 Content-Type 请求头",
+				)
+
+			extension = allowed_mime_types.get(mime_type)
+			if extension is None:
+				return _failure_response(
+					status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+					code="UNSUPPORTED_MEDIA_TYPE",
+					message="仅支持 png 或 jpg/jpeg 图片",
+				)
+
+			request.state.upload_mime_type = mime_type
+			request.state.upload_extension = extension
 
 			return await func(*args, **kwargs)
 
