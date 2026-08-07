@@ -41,6 +41,9 @@ def _split_scopes(raw_scope: str) -> set[str]:
 
 
 def _has_scope(granted_scope: str, required_scope: str) -> bool:
+	if required_scope == "*":
+		return True
+
 	required = _split_scopes(required_scope)
 	if not required:
 		return True

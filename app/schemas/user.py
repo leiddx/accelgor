@@ -81,6 +81,20 @@ class UserLoginResponse(BaseModel):
     expires_at: datetime = Field(..., description="过期时间")
 
 
+class UserTokenRefreshRequest(BaseModel):
+    """刷新访问令牌请求。"""
+
+    refresh: str = Field(..., min_length=1, description="刷新令牌")
+
+    @field_validator("refresh")
+    @classmethod
+    def strip_required(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("不能为空")
+        return value
+
+
 class UserPublic(BaseModel):
     """对外返回的用户信息。"""
 
