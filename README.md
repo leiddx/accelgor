@@ -64,7 +64,10 @@ tests/      # pytest 测试
 
 ## REST Client 接口调试
 
-项目已提供基于 VS Code REST Client 的接口请求文件，位置在 [docs/register_user.http](docs/register_user.http)。
+项目已提供基于 VS Code REST Client 的接口请求文件，位置如下：
+
+- 注册接口：[docs/register_user.http](docs/register_user.http)
+- 登录接口：[docs/login.http](docs/login.http)
 
 ### 使用方法
 
@@ -75,9 +78,13 @@ tests/      # pytest 测试
    uv run uvicorn app.main:app --reload
    ```
 
-   或通过`vscode`调试启动 `qlite://:memory:`、`Mysql`
+3. 打开对应的 `.http` 文件，点击请求上方的 `Send Request` 按钮即可直接发起请求。
 
-3. 打开 [docs/register_user.http](docs/register_user.http)，点击请求上方的 `Send Request` 按钮即可直接发起请求。
+### 推荐插件
+
+- `Huachao Mao.rest-client`：用于直接执行 `.http` / `.rest` 请求文件。
+- `ms-python.python`：Python 开发与调试支持。
+- `ms-azuretools.vscode-docker`：如果你需要管理 Docker 容器。
 
 ### 推荐插件
 

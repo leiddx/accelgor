@@ -1,0 +1,27 @@
+### 用户登录接口
+# POST /api/v1/login/
+# 说明：
+# - username string 必填，支持用户名 / 手机号 / 邮箱
+# - password string 必填
+# - 成功登录时返回 200 OK，并返回 access_token / refresh_token / expires_at
+# - 用户名或密码错误时返回 401 Unauthorized
+
+### 成功响应示例（200 OK）
+# {
+#   "access_token": "8f2d3a0b4a8744c89a2e5f0c7c3d2e1f",
+#   "refresh_token": "b141f2d1f0d84ad49d7f7c7662f1c0d5",
+#   "expires_at": "2026-08-07T12:03:00"
+# }
+
+### 认证失败示例（401 Unauthorized）
+# {
+#   "detail": "用户名或密码错误"
+# }
+
+POST http://127.0.0.1:8000/api/v1/login/
+Content-Type: application/json
+
+{
+  "username": "demo_user",
+  "password": "123456"
+}
