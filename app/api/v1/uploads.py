@@ -6,7 +6,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 
-from app.api.deps import _failure_response, mime_type_check, token_check
+from app.api.deps import _failure_response, mime_type_check, swap_rgb_to_bgr, token_check
 from app.core.config import settings
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
@@ -20,6 +20,7 @@ ALLOWED_MIME_TYPES: dict[str, str] = {
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=None)
 @token_check(scope="*")
 @mime_type_check(ALLOWED_MIME_TYPES)
+@swap_rgb_to_bgr()
 async def upload_image(request: Request) -> dict[str, str | int] | JSONResponse:
     mime_type = request.state.upload_mime_type
     extension = request.state.upload_extension
@@ -30,13 +31,17 @@ async def upload_image(request: Request) -> dict[str, str | int] | JSONResponse:
     filename = f"{uuid4().hex}.{extension}"
     output_path = upload_dir / filename
 
-    size = 0
+    transformed_bytes = getattr(request.state, "transformed_upload_bytes", None)
+    if transformed_bytes is None:
+        return _failure_response(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            code="TRANSFORMED_IMAGE_MISSING",
+            message="图片转换结果缺失",
+        )
+
+    size = len(transformed_bytes)
     with output_path.open("wb") as output_file:
-        async for chunk in request.stream():
-            if not chunk:
-                continue
-            output_file.write(chunk)
-            size += len(chunk)
+        output_file.write(transformed_bytes)
 
     if size == 0:
         output_path.unlink(missing_ok=True)

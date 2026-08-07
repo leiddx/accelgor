@@ -68,7 +68,7 @@ tests/      # pytest 测试
 
 - 注册接口：[docs/register_user.http](docs/register_user.http)
 - 登录接口：[docs/login.http](docs/login.http)
-- 串联演示脚本（注册/登录/鉴权）：[docs/hello_world.http](docs/hello_world.http)
+- 串联演示脚本（注册/登录/鉴权/上传）：[docs/hello_world.http](docs/hello_world.http)
 - 图片上传接口（原始二进制 body）：[docs/upload.http](docs/upload.http)
 
 ### 使用方法
@@ -108,8 +108,13 @@ curl -X POST "http://127.0.0.1:8000/api/v1/uploads/" \
 2. 普通用户登录并自动提取 `user_access_token`
 3. 调用 `/api/v1/users/hello/user`（预期返回 `"Hello World"`）
 4. 调用 `/api/v1/users/hello/admin`（预期 403）
-5. admin 用户登录并自动提取 `admin_access_token`
-6. 调用 `/api/v1/users/hello/admin`（预期返回 `"Hello World"`）
+5. 普通用户上传 PNG（预期 201）
+6. 普通用户上传 JPEG（预期 201）
+7. 非法类型上传（预期 415）
+8. admin 用户登录并自动提取 `admin_access_token`
+9. 调用 `/api/v1/users/hello/admin`（预期返回 `"Hello World"`）
+
+上传演示默认读取同目录真实图片文件：`docs/demo.png` 与 `docs/demo.jpg`。
 
 
 响应示例：

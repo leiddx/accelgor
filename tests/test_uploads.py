@@ -1,7 +1,9 @@
 from pathlib import Path
+from io import BytesIO
 import uuid
 
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from app.core.config import settings
 
@@ -26,6 +28,13 @@ def issue_user_token(client: TestClient) -> str:
     assert login_response.status_code == 200
 
     return login_response.json()["access_token"]
+
+
+def build_png_bytes(color: tuple[int, int, int]) -> bytes:
+    image = Image.new("RGB", (1, 1), color=color)
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def test_upload_image_requires_token(client: TestClient, tmp_path: Path) -> None:
@@ -56,7 +65,7 @@ def test_upload_image_stream_save_success(client: TestClient, tmp_path: Path) ->
     access_token = issue_user_token(client)
 
     try:
-        image_bytes = b"\x89PNG\r\n\x1a\n" + b"mock-png-binary"
+        image_bytes = build_png_bytes((12, 34, 56))
         response = client.post(
             "/api/v1/uploads",
             content=image_bytes,
@@ -69,12 +78,15 @@ def test_upload_image_stream_save_success(client: TestClient, tmp_path: Path) ->
         assert response.status_code == 201
         payload = response.json()
         assert payload["mime_type"] == "image/png"
-        assert payload["size"] == len(image_bytes)
         assert payload["filename"].endswith(".png")
 
         stored_file = tmp_path / payload["filename"]
         assert stored_file.exists()
-        assert stored_file.read_bytes() == image_bytes
+        stored_bytes = stored_file.read_bytes()
+        assert payload["size"] == len(stored_bytes)
+
+        with Image.open(BytesIO(stored_bytes)) as stored_image:
+            assert stored_image.convert("RGB").getpixel((0, 0)) == (56, 34, 12)
     finally:
         settings.UPLOAD_DIR = original_upload_dir
 

@@ -1,8 +1,9 @@
-### Hello World 串联演示（REST Client）
-# 用途：一次性演示注册、登录、基于 scope 访问 Hello World 接口。
+### Hello World + Upload 串联演示（REST Client）
+# 用途：一次性演示注册、登录、基于 scope 访问 Hello World 接口与图片上传。
 # 说明：
 # - user 流程可直接跑通。
 # - admin 流程需要数据库中存在 scope=admin 的账号。
+# - 上传演示使用 docs 目录下的 demo.png 与 demo.jpg。
 
 @host = http://127.0.0.1:8000
 @password = secret123
@@ -35,3 +36,38 @@ Authorization: Bearer {{userLogin.response.body.$.access_token}}
 ### 4) 普通用户访问 admin 接口（预期 403）
 GET {{host}}/api/v1/hello/admin
 Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+### 5) 普通用户上传 PNG（预期 201）
+POST {{host}}/api/v1/uploads/
+Content-Type: image/png
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+< ./demo.png
+
+### 6) 普通用户上传 JPEG（预期 201）
+POST {{host}}/api/v1/uploads/
+Content-Type: image/jpeg
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+< ./demo.jpg
+
+### 7) 非法类型上传（预期 415）
+POST {{host}}/api/v1/uploads/
+Content-Type: text/plain
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+not-an-image
+
+### 8) admin 用户登录（需要数据库已有 admin 账号）
+# @name adminLogin
+POST {{host}}/api/v1/login/
+Content-Type: application/json
+
+{
+  "username": "{{admin_username}}",
+  "password": "{{password}}"
+}
+
+### 9) admin 访问 admin 接口（预期 200 + "Hello World"）
+GET {{host}}/api/v1/hello/admin
+Authorization: Bearer {{adminLogin.response.body.$.access_token}}

@@ -3,10 +3,12 @@
 from collections.abc import Awaitable, Callable, Mapping
 from datetime import timezone
 from functools import wraps
+from io import BytesIO
 from typing import Any
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
+from PIL import Image, UnidentifiedImageError
 
 from app.models import Token as TokenModel
 from app.utils.time import utc_now
@@ -160,6 +162,64 @@ def mime_type_check(
 
 			request.state.upload_mime_type = mime_type
 			request.state.upload_extension = extension
+
+			return await func(*args, **kwargs)
+
+		return wrapper
+
+	return decorator
+
+
+def swap_rgb_to_bgr() -> Callable[[Callable[..., Awaitable[Any]]], Callable[..., Awaitable[Any]]]:
+	"""将上传图片的 RGB 通道转换为 BGR，并写入 request.state。"""
+
+	def decorator(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+		@wraps(func)
+		async def wrapper(*args: Any, **kwargs: Any) -> Any:
+			request = _resolve_request(args, kwargs)
+			if request is None:
+				return _failure_response(
+					status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+					code="REQUEST_CONTEXT_MISSING",
+					message="请求上下文缺失",
+				)
+
+			raw_chunks: list[bytes] = []
+			async for chunk in request.stream():
+				if chunk:
+					raw_chunks.append(chunk)
+
+			raw_bytes = b"".join(raw_chunks)
+			if not raw_bytes:
+				request.state.transformed_upload_bytes = b""
+				return await func(*args, **kwargs)
+
+			mime_type = getattr(request.state, "upload_mime_type", "")
+
+			try:
+				with Image.open(BytesIO(raw_bytes)) as image:
+					if mime_type == "image/png" and "A" in image.getbands():
+						r, g, b, a = image.convert("RGBA").split()
+						converted = Image.merge("RGBA", (b, g, r, a))
+						output_format = "PNG"
+					elif mime_type == "image/png":
+						r, g, b = image.convert("RGB").split()
+						converted = Image.merge("RGB", (b, g, r))
+						output_format = "PNG"
+					else:
+						r, g, b = image.convert("RGB").split()
+						converted = Image.merge("RGB", (b, g, r))
+						output_format = "JPEG"
+
+					output_buffer = BytesIO()
+					converted.save(output_buffer, format=output_format)
+					request.state.transformed_upload_bytes = output_buffer.getvalue()
+			except (UnidentifiedImageError, OSError):
+				return _failure_response(
+					status_code=status.HTTP_400_BAD_REQUEST,
+					code="IMAGE_INVALID",
+					message="上传内容不是有效图片",
+				)
 
 			return await func(*args, **kwargs)
 
