@@ -1,0 +1,40 @@
+### Aggregate 并发聚合接口（REST Client）
+# 用途：演示 /api/v1/aggregate 的鉴权调用、并发成功场景与超时失败场景。
+# 说明：
+# - 首次运行请先执行“注册”请求；若用户名冲突，请修改 @username 后重试。
+# - 超时场景通过将 cpu_timeout_seconds 设置为极小值，触发 TimeoutError 并由 aggregate 汇总为 failed。
+
+@host = http://127.0.0.1:8000
+@username = aggregate_user
+@password = secret123
+
+### 1) 注册普通用户（可选）
+POST {{host}}/api/v1/users/
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### 2) 登录并保存 access_token
+# @name aggregateLogin
+POST {{host}}/api/v1/login/
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### 3) 并发聚合成功场景（预期 success_count=n）
+GET {{host}}/api/v1/aggregate?n=3&max_concurrency=2&cpu_timeout_seconds=12
+Authorization: Bearer {{aggregateLogin.response.body.$.access_token}}
+
+### 4) 并发聚合超时场景（预期 failed_count=n，error_type=TimeoutError）
+GET {{host}}/api/v1/aggregate?n=24&max_concurrency=2&cpu_timeout_seconds=10
+Authorization: Bearer {{aggregateLogin.response.body.$.access_token}}
+
+### 5) 参数越界场景（预期 422）
+GET {{host}}/api/v1/aggregate?n=11&max_concurrency=2
+Authorization: Bearer {{aggregateLogin.response.body.$.access_token}}

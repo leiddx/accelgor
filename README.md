@@ -69,6 +69,7 @@ tests/      # pytest 测试
 - 注册接口：[docs/register_user.http](docs/register_user.http)
 - 登录接口：[docs/login.http](docs/login.http)
 - 串联演示脚本（注册/登录/鉴权/上传）：[docs/hello_world.http](docs/hello_world.http)
+- 并发聚合接口（成功/超时/参数越界）：[docs/aggregate.http](docs/aggregate.http)
 - 图片上传接口（原始二进制 body）：[docs/upload.http](docs/upload.http)
 
 ### 使用方法
