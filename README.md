@@ -34,6 +34,11 @@ uploads/    # 图片上传保存目录
 tests/      # pytest 测试
 ```
 
+## 文档索引
+
+- 开发过程记录：[docs/开发过程记录.md](docs/开发过程记录.md)
+- 题目原文：[docs/初试题目.md](docs/初试题目.md)
+
 ## 快速开始
 
 1. 安装依赖（需要先安装 [uv](https://docs.astral.sh/uv/)）：
@@ -83,23 +88,6 @@ tests/      # pytest 测试
 
 3. 打开对应的 `.http` 文件，点击请求上方的 `Send Request` 按钮即可直接发起请求。
 
-### 上传接口 curl 示例（推荐真实文件调试）
-
-上传 PNG：
-
-```bash
-curl -X POST "http://127.0.0.1:8000/api/v1/uploads/" \
-   -H "Content-Type: image/png" \
-   --data-binary "@/absolute/path/to/demo.png"
-```
-
-上传 JPEG：
-
-```bash
-curl -X POST "http://127.0.0.1:8000/api/v1/uploads/" \
-   -H "Content-Type: image/jpeg" \
-   --data-binary "@/absolute/path/to/demo.jpg"
-```
 
 ### 串联演示（推荐）
 
@@ -118,17 +106,10 @@ curl -X POST "http://127.0.0.1:8000/api/v1/uploads/" \
 上传演示默认读取同目录真实图片文件：`docs/demo.png` 与 `docs/demo.jpg`。
 
 
-响应示例：
-
-```json
-"Hello World"
-```
-
 ### 推荐插件
 
 - `Huachao Mao.rest-client`：用于直接执行 `.http` / `.rest` 请求文件。
 - `ms-python.python`：Python 开发与调试支持。
-- `ms-azuretools.vscode-docker`：如果你需要管理 Docker 容器。
 
 ## 运行测试
 

@@ -37,40 +37,48 @@ Authorization: Bearer {{userLogin.response.body.$.access_token}}
 GET {{host}}/api/v1/hello/admin
 Authorization: Bearer {{userLogin.response.body.$.access_token}}
 
-### 5) 普通用户上传 PNG（预期 201）
+### 5) 普通用户调用聚合接口（成功场景，预期 success_count=n）
+GET {{host}}/api/v1/aggregate?n=3&max_concurrency=2&cpu_timeout_seconds=12
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+### 6) 普通用户调用聚合接口（超时场景，预期 failed_count=n）
+GET {{host}}/api/v1/aggregate?n=3&max_concurrency=2&cpu_timeout_seconds=0.05
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+### 7) 普通用户上传 PNG（预期 201）
 POST {{host}}/api/v1/uploads/
 Content-Type: image/png
 Authorization: Bearer {{userLogin.response.body.$.access_token}}
 
 < ./demo.png
 
-### 6) 普通用户上传 JPEG（预期 201）
+### 8) 普通用户上传 JPEG（预期 201）
 POST {{host}}/api/v1/uploads/
 Content-Type: image/jpeg
 Authorization: Bearer {{userLogin.response.body.$.access_token}}
 
 < ./demo.jpg
 
-### 7) 非法类型上传（预期 415）
+### 9) 非法类型上传（预期 415）
 POST {{host}}/api/v1/uploads/
 Content-Type: text/plain
 Authorization: Bearer {{userLogin.response.body.$.access_token}}
 
 not-an-image
 
-### 8) 非图片二进制上传（预期 400）
+### 10) 非图片二进制上传（预期 400）
 POST {{host}}/api/v1/uploads/
 Content-Type: image/png
 Authorization: Bearer {{userLogin.response.body.$.access_token}}
 
 not-a-real-image
 
-### 9) 空 body 上传（预期 400）
+### 11) 空 body 上传（预期 400）
 POST {{host}}/api/v1/uploads/
 Content-Type: image/jpeg
 Authorization: Bearer {{userLogin.response.body.$.access_token}}
 
-### 10) admin 用户登录（需要数据库已有 admin 账号）
+### 12) admin 用户登录（需要数据库已有 admin 账号）
 # @name adminLogin
 POST {{host}}/api/v1/login/
 Content-Type: application/json
@@ -80,6 +88,6 @@ Content-Type: application/json
   "password": "{{password}}"
 }
 
-### 11) admin 访问 admin 接口（预期 200 + "Hello World"）
+### 13) admin 访问 admin 接口（预期 200 + "Hello World"）
 GET {{host}}/api/v1/hello/admin
 Authorization: Bearer {{adminLogin.response.body.$.access_token}}
