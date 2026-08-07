@@ -68,6 +68,7 @@ tests/      # pytest 测试
 
 - 注册接口：[docs/register_user.http](docs/register_user.http)
 - 登录接口：[docs/login.http](docs/login.http)
+- 串联演示脚本（注册/登录/鉴权）：[docs/hello_world.http](docs/hello_world.http)
 
 ### 使用方法
 
@@ -80,11 +81,37 @@ tests/      # pytest 测试
 
 3. 打开对应的 `.http` 文件，点击请求上方的 `Send Request` 按钮即可直接发起请求。
 
-### 推荐插件
+### 串联演示（推荐）
 
-- `Huachao Mao.rest-client`：用于直接执行 `.http` / `.rest` 请求文件。
-- `ms-python.python`：Python 开发与调试支持。
-- `ms-azuretools.vscode-docker`：如果你需要管理 Docker 容器。
+可直接打开 [docs/hello_world_flow.http](docs/hello_world_flow.http)，按文件内顺序执行：
+
+1. 注册普通用户
+2. 普通用户登录并自动提取 `user_access_token`
+3. 调用 `/api/v1/users/hello/user`（预期返回 `"Hello World"`）
+4. 调用 `/api/v1/users/hello/admin`（预期 403）
+5. admin 用户登录并自动提取 `admin_access_token`
+6. 调用 `/api/v1/users/hello/admin`（预期返回 `"Hello World"`）
+
+## Scope 鉴权 Hello World 接口
+
+按题目要求，新增两个受保护接口，返回值均为 JSON 字符串 `"Hello World"`（不包裹标准响应结构）：
+
+- `GET /api/v1/users/hello/user`
+   - 需要 `scope=user`（或 `*`）
+- `GET /api/v1/users/hello/admin`
+   - 需要 `scope=admin`（或 `*`）
+
+调用方式：
+
+1. 先注册并登录获取 `access_token`。
+2. 在 [docs/hello_world.http](docs/hello_world.http) 中替换 `@access_token`。
+3. 分别发送用户接口和管理员接口请求验证权限差异。
+
+响应示例：
+
+```json
+"Hello World"
+```
 
 ### 推荐插件
 
