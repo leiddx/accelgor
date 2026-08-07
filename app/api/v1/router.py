@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+from app.api.v1.aggregate import router as aggregate_router
 from app.api.v1.hello import router as hello_router
 from app.api.v1.login import router as login_router
 from app.api.v1.uploads import router as uploads_router
@@ -13,3 +14,4 @@ api_router.include_router(users_router)
 api_router.include_router(login_router)
 api_router.include_router(hello_router)
 api_router.include_router(uploads_router)
+api_router.include_router(aggregate_router)
