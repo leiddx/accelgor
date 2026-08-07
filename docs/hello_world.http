@@ -58,7 +58,19 @@ Authorization: Bearer {{userLogin.response.body.$.access_token}}
 
 not-an-image
 
-### 8) admin 用户登录（需要数据库已有 admin 账号）
+### 8) 非图片二进制上传（预期 400）
+POST {{host}}/api/v1/uploads/
+Content-Type: image/png
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+not-a-real-image
+
+### 9) 空 body 上传（预期 400）
+POST {{host}}/api/v1/uploads/
+Content-Type: image/jpeg
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+### 10) admin 用户登录（需要数据库已有 admin 账号）
 # @name adminLogin
 POST {{host}}/api/v1/login/
 Content-Type: application/json
@@ -68,6 +80,6 @@ Content-Type: application/json
   "password": "{{password}}"
 }
 
-### 9) admin 访问 admin 接口（预期 200 + "Hello World"）
+### 11) admin 访问 admin 接口（预期 200 + "Hello World"）
 GET {{host}}/api/v1/hello/admin
 Authorization: Bearer {{adminLogin.response.body.$.access_token}}

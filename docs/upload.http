@@ -6,6 +6,7 @@
 # - 通过 Content-Type 传 MIME 进行类型判定，仅允许：
 #   - image/png
 #   - image/jpeg
+# - 服务端会先尝试解码图片，再进行 RGB -> BGR 转换后落盘；伪造字节会返回 400。
 # - 成功返回 201，包含 filename / mime_type / size。
 
 @host = http://127.0.0.1:8000
@@ -52,3 +53,15 @@ Content-Type: text/plain
 Authorization: Bearer {{userLogin.response.body.$.access_token}}
 
 not-an-image
+
+### 非图片二进制示例（预期 400）
+POST {{host}}/api/v1/uploads/
+Content-Type: image/png
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
+
+not-a-real-image
+
+### 空 body 示例（预期 400）
+POST {{host}}/api/v1/uploads/
+Content-Type: image/jpeg
+Authorization: Bearer {{userLogin.response.body.$.access_token}}
