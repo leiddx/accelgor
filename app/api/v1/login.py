@@ -1,7 +1,6 @@
 """用户登录接口。"""
 
 import uuid
-from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, status
 from tortoise.expressions import Q
@@ -10,6 +9,7 @@ from app.core.security import verify_password
 from app.models import Token as TokenModel
 from app.models import User as UserModel
 from app.schemas import UserLoginRequest, UserLoginResponse
+from app.utils.time import utc_after
 
 router = APIRouter(prefix="/login", tags=["auth"])
 
@@ -34,7 +34,7 @@ async def login(payload: UserLoginRequest) -> UserLoginResponse:
 
     access_token = uuid.uuid4().hex
     refresh_token = uuid.uuid4().hex
-    expires_at = datetime.now() + timedelta(minutes=3)
+    expires_at = utc_after(minutes=3)
 
     await TokenModel.create(
         value=access_token,

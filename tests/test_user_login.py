@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,6 +18,12 @@ def unique_username(prefix: str) -> str:
 
 def parse_api_datetime(value: str) -> datetime:
     return datetime.fromisoformat(value)
+
+
+def normalize_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def test_login(client: TestClient) -> None:
@@ -53,7 +59,7 @@ def test_login(client: TestClient) -> None:
     stored_token = asyncio.run(get_token_by_value(login_body["access_token"]))
     assert stored_token is not None
     assert stored_token.value == login_body["access_token"]
-    assert stored_token.expire.replace(tzinfo=None) == parse_api_datetime(login_body["expires_at"])
+    assert normalize_utc(stored_token.expire) == normalize_utc(parse_api_datetime(login_body["expires_at"]))
     assert stored_token.refresh == login_body["refresh_token"]
     assert stored_token.scope == "user"
     assert stored_token.user_id == register_body["id"]
@@ -92,7 +98,7 @@ def test_login_accepts_phone_or_email_identifier(client: TestClient, identifier:
     stored_token = asyncio.run(get_token_by_value(login_body["access_token"]))
     assert stored_token is not None
     assert stored_token.value == login_body["access_token"]
-    assert stored_token.expire.replace(tzinfo=None) == parse_api_datetime(login_body["expires_at"])
+    assert normalize_utc(stored_token.expire) == normalize_utc(parse_api_datetime(login_body["expires_at"]))
     assert stored_token.refresh == login_body["refresh_token"]
     assert stored_token.scope == "user"
     assert stored_token.user_id == register_body["id"]

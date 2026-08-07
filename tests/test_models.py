@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
-
 import pytest
 
 from app.models import Token, User
+from app.utils.time import utc_after
 
 
 @pytest.mark.asyncio
@@ -19,7 +18,7 @@ async def test_user_and_token_models_can_be_created(initialized_tortoise: None) 
         user=user,
         value="access-token",
         refresh="refresh-token",
-        expire=datetime.now() + timedelta(hours=1),
+        expire=utc_after(hours=1),
         scope="admin",
     )
 

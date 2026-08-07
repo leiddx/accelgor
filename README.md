@@ -99,3 +99,25 @@ uv run pytest -v
 ```
 
 测试通过设置 `DATABASE_URL=sqlite://:memory:` 覆盖 MySQL 连接（见 `tests/conftest.py`），无需真实数据库即可验证应用启动与响应。
+
+## 时间处理约定
+
+为避免本地时区与 UTC 混用导致的鉴权误判，项目统一使用 `app/utils/time.py` 中的时间方法：
+
+- `utc_now()`：返回当前 UTC 时间（aware datetime）
+- `utc_after(**delta_kwargs)`：返回当前 UTC 时间之后的时间点
+- `utc_before(**delta_kwargs)`：返回当前 UTC 时间之前的时间点
+
+请不要在业务代码和测试中直接书写 `datetime.now()`、`datetime.utcnow()` 或 `datetime.now() ± timedelta(...)`。
+
+推荐写法示例：
+
+```python
+from app.utils.time import utc_after, utc_before, utc_now
+
+expires_at = utc_after(minutes=3)
+expired_at = utc_before(minutes=3)
+current = utc_now()
+```
+
+项目测试中有约束用例 `tests/test_time_convention.py`，用于拦截非统一写法。

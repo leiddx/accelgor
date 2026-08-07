@@ -1,8 +1,9 @@
 """用户注册接口。"""
 
 import bcrypt
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
+from app.api.deps import token_check
 from app.core.security import hash_password
 from app.models import User as UserModel
 from app.schemas import UserCreate, UserPublic
@@ -41,3 +42,18 @@ async def register_user(payload: UserCreate) -> UserPublic:
     )
 
     return UserPublic.model_validate(user)
+
+
+@router.get("/me", response_model=UserPublic, status_code=status.HTTP_200_OK)
+@token_check(scope="user")
+async def get_current_user(request: Request) -> UserPublic:
+    token = request.state.current_token
+    user = await UserModel.get(id=token.user_id)
+    return UserPublic.model_validate(user)
+
+
+@router.get("/admin/ping", status_code=status.HTTP_200_OK)
+@token_check(scope="admin")
+async def admin_ping(request: Request) -> dict[str, str]:
+    _ = request.state.current_token
+    return {"status": "ok"}
