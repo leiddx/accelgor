@@ -1,0 +1,98 @@
+import asyncio
+import uuid
+from datetime import datetime
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app.models import Token
+
+
+async def get_token_by_value(value: str) -> Token | None:
+    return await Token.filter(value=value).first()
+
+
+def unique_username(prefix: str) -> str:
+    return f"{prefix}_{uuid.uuid4().hex[:8]}"
+
+
+def parse_api_datetime(value: str) -> datetime:
+    return datetime.fromisoformat(value)
+
+
+def test_login(client: TestClient) -> None:
+    username = unique_username("alice_login")
+
+    register_response = client.post(
+        "/api/v1/users",
+        json={
+            "username": username,
+            "password": "secret123",
+        },
+    )
+
+    assert register_response.status_code == 201
+
+    login_response = client.post(
+        "/api/v1/login",
+        json={
+            "username": username, 
+            "password": "secret123"
+        },
+    )
+
+    assert login_response.status_code == 200
+    
+    register_body = register_response.json()
+    login_body = login_response.json()
+    
+    assert login_body["access_token"]
+    assert login_body["refresh_token"]
+    assert login_body["expires_at"]
+
+    stored_token = asyncio.run(get_token_by_value(login_body["access_token"]))
+    assert stored_token is not None
+    assert stored_token.value == login_body["access_token"]
+    assert stored_token.expire.replace(tzinfo=None) == parse_api_datetime(login_body["expires_at"])
+    assert stored_token.refresh == login_body["refresh_token"]
+    assert stored_token.scope == "user"
+    assert stored_token.user_id == register_body["id"]
+
+
+@pytest.mark.parametrize("identifier", ["13800000000", "alice@example.com"])
+def test_login_accepts_phone_or_email_identifier(client: TestClient, identifier: str) -> None:
+    username = unique_username("alice_login")
+
+    register_response = client.post(
+        "/api/v1/users",
+        json={
+            "username": username,
+            "password": "secret123",
+            "phone": "13800000000",
+            "email": "alice@example.com",
+        },
+    )
+
+    assert register_response.status_code == 201
+
+    login_response = client.post(
+        "/api/v1/login",
+        json={"username": identifier, "password": "secret123"},
+    )
+
+    assert login_response.status_code == 200
+    
+    register_body = register_response.json()
+    login_body = login_response.json()
+    
+    assert login_body["access_token"]
+    assert login_body["refresh_token"]
+    assert login_body["expires_at"]
+
+    stored_token = asyncio.run(get_token_by_value(login_body["access_token"]))
+    assert stored_token is not None
+    assert stored_token.value == login_body["access_token"]
+    assert stored_token.expire.replace(tzinfo=None) == parse_api_datetime(login_body["expires_at"])
+    assert stored_token.refresh == login_body["refresh_token"]
+    assert stored_token.scope == "user"
+    assert stored_token.user_id == register_body["id"]

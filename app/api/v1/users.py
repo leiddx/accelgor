@@ -1,7 +1,6 @@
 """用户注册接口。"""
 
 import bcrypt
-
 from fastapi import APIRouter, HTTPException, status
 
 from app.core.security import hash_password

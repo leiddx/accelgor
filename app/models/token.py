@@ -5,8 +5,12 @@ class Token(models.Model):
     """令牌。"""
 
     id = fields.BigIntField(primary_key=True)
-    
-    user = fields.ForeignKeyField("models.User", related_name="tokens", on_delete=fields.CASCADE)
+
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name="tokens",
+        on_delete=fields.CASCADE,
+    )
 
     value = fields.CharField(max_length=32, db_index=True)
     refresh = fields.CharField(max_length=32, db_index=True)

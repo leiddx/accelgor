@@ -56,6 +56,31 @@ class UserCreate(BaseModel):
         return value
 
 
+class UserLoginRequest(BaseModel):
+    """用户登录请求。"""
+
+    username: str = Field(..., min_length=1, description="登录账号，可匹配用户名/手机号/邮箱")
+    password: str = Field(..., min_length=1, description="密码")
+
+    @field_validator("username", "password")
+    @classmethod
+    def strip_required(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("不能为空")
+        return value
+
+
+class UserLoginResponse(BaseModel):
+    """用户登录响应。"""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    access_token: str = Field(..., description="访问令牌")
+    refresh_token: str = Field(..., description="刷新令牌")
+    expires_at: datetime = Field(..., description="过期时间")
+
+
 class UserPublic(BaseModel):
     """对外返回的用户信息。"""
 

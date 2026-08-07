@@ -9,17 +9,21 @@ from tortoise import Tortoise
 from fastapi.testclient import TestClient
 from collections.abc import AsyncGenerator, Generator
 
+TEST_DB_URL = "sqlite://tests/test.sqlite3"
+
+os.environ["DATABASE_URL"] = TEST_DB_URL
+
+# os.environ.setdefault("DATABASE_URL", "sqlite://:memory:")
+# os.environ.setdefault("DEBUG", "true")
+
 from app.main import app
 from app.models import Token, User
-
-os.environ.setdefault("DATABASE_URL", "sqlite://:memory:")
-os.environ.setdefault("DEBUG", "true")
 
 
 @pytest_asyncio.fixture()
 async def initialized_tortoise() -> AsyncGenerator[None, None]:
     await Tortoise.init(
-        db_url="sqlite://:memory:",
+        db_url=TEST_DB_URL,
         modules={"models": ["app.models"]},
     )
     await Tortoise.generate_schemas()
@@ -37,6 +41,8 @@ async def _clear_db() -> None:
 @pytest.fixture()
 def client() -> Generator[TestClient, None, None]:
     with TestClient(app) as test_client:
+        # 先触发一次请求，确保 register_tortoise 的初始化与建表完成
+        test_client.get("/health")
         asyncio.run(_clear_db())
         yield test_client
         asyncio.run(_clear_db())

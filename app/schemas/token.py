@@ -9,7 +9,7 @@ class Token(BaseModel):
 
     id: int = Field(..., description="令牌记录 ID")
 
-    user: User = Field(..., description="关联用户信息")
+    user_id: int = Field(..., description="关联用户信息")
 
     value: str = Field(
         ..., description="访问令牌值", json_schema_extra={"x-index": True}
