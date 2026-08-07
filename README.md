@@ -60,7 +60,30 @@ tests/      # pytest 测试
    uv run uvicorn app.main:app --reload
    ```
 
-   访问 `http://127.0.0.1:8000/health` 应返回 `{"status": "ok"}`；`http://127.0.0.1:8000/docs` 查看接口文档。
+   访问 `http://127.0.0.1:8000/health` 应返回 `{"status": "ok"}`。
+
+## REST Client 接口调试
+
+项目已提供基于 VS Code REST Client 的接口请求文件，位置在 [docs/register_user.http](docs/register_user.http)。
+
+### 使用方法
+
+1. 安装 VS Code 扩展：`Huachao Mao.rest-client`。
+2. 启动服务：
+
+   ```bash
+   uv run uvicorn app.main:app --reload
+   ```
+
+   或通过`vscode`调试启动 `qlite://:memory:`、`Mysql`
+
+3. 打开 [docs/register_user.http](docs/register_user.http)，点击请求上方的 `Send Request` 按钮即可直接发起请求。
+
+### 推荐插件
+
+- `Huachao Mao.rest-client`：用于直接执行 `.http` / `.rest` 请求文件。
+- `ms-python.python`：Python 开发与调试支持。
+- `ms-azuretools.vscode-docker`：如果你需要管理 Docker 容器。
 
 ## 运行测试
 

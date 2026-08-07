@@ -1,0 +1,38 @@
+### 用户注册接口
+# POST /api/v1/users/
+# 说明：
+# - username string 必填
+# - password string 必填
+# - phone string 非必填
+# - email string 非必填
+
+# - 成功注册时返回 201 Created，并返回用户信息
+# - 用户名、手机号、邮箱重复时分别返回 409 Conflict
+
+### 成功响应示例（201 Created）
+# {
+#   "id": 1,
+#   "username": "demo_user",
+#   "phone": "13800138000",
+#   "email": "demo@example.com",
+#   "scope": "user",
+#   "created": "2026-08-07T12:00:00",
+#   "updated": "2026-08-07T12:00:00"
+# }
+
+### 冲突响应示例（409 Conflict）
+# {
+#   "detail": "用户名已存在"
+# }
+
+
+POST http://127.0.0.1:8000/api/v1/users/
+Content-Type: application/json
+
+{
+  "username": "demo_user",
+  "password": "123456",
+  "phone": "13800138000",
+  "email": "demo@example.com"
+}
+
