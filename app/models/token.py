@@ -4,12 +4,12 @@ from tortoise import fields, models
 class Token(models.Model):
     """令牌。"""
 
-    id = fields.BigIntField(pk=True)
+    id = fields.BigIntField(primary_key=True)
     
     user = fields.ForeignKeyField("models.User", related_name="tokens", on_delete=fields.CASCADE)
 
-    value = fields.CharField(max_length=32, index=True)
-    refresh = fields.CharField(max_length=32, index=True)
+    value = fields.CharField(max_length=32, db_index=True)
+    refresh = fields.CharField(max_length=32, db_index=True)
 
     expire = fields.DatetimeField()
     scope = fields.CharField(max_length=128)
