@@ -3,8 +3,9 @@
 import bcrypt
 
 
-def hash_password(plain_password: str) -> str:
-    return bcrypt.hashpw(plain_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+def hash_password(plain_password: str, salt: str | bytes) -> str:
+    salt_bytes = salt.encode("utf-8") if isinstance(salt, str) else salt
+    return bcrypt.hashpw(plain_password.encode("utf-8"), salt_bytes).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

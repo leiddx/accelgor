@@ -14,7 +14,7 @@ app.include_router(api_router)
 register_tortoise(
     app,
     config=TORTOISE_ORM,
-    generate_schemas=False,
+    generate_schemas=settings.DB_URL.lower().startswith("sqlite://"),
     add_exception_handlers=True,
 )
 

@@ -1,4 +1,4 @@
 from .token import Token
-from .user import User
+from .user import User, UserCreate, UserPublic
 
-__all__ = ["Token", "User"]
+__all__ = ["Token", "User", "UserCreate", "UserPublic"]
